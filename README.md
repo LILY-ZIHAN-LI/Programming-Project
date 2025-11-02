@@ -12,7 +12,7 @@ annotation（用于TPM正则化）：
 https://www.gencodegenes.org/human/release_44.html
 Comprehensive gene annotation	CHR（基因长度注释）
 
-//请注意以下的数据仅针对thyroid样本预实验。
+*请注意以下的数据仅针对thyroid样本预实验。
 
 * **阶段1：数据清洗**
     * **a. 读取GTF:** `gtf_parser.go` 负责解析 `gencode.v44.annotation.gtf.gz` 文件，计算出每个基因的准确长度。
@@ -22,7 +22,7 @@ Comprehensive gene annotation	CHR（基因长度注释）
         * **iii. 两次过滤：** “低表达过滤” -> “低变异过滤”。
     * **c. 产出:** `main.go` 把这个做好的数据矩阵保存为 `clean_thyroid_matrix.csv`。
  
-* **阶段2：计算相关矩阵 (Step 1: Similarity)**
+* **阶段2：计算相关矩阵**
     * **a. 加载数据:** `main.go` 将“阶段1”产出的 `finalMatrix`直接传递给 `RunPhase2` 函数。
     * **b. 预计算:** `phase2.go` (在 `RunPhase2` 中) 首先一次性计算所有 16,746 个基因的均值 (Mean) 和标准差 (StdDev)。
     * **c. 并行计算:** `phase2.go` (在 `correlationWorker` 中) 启动一个与CPU核心数相等的“工人池” (Worker Pool)，并行处理 1.4 亿个相关性计算任务：
