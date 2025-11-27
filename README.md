@@ -30,6 +30,29 @@ Comprehensive gene annotation	CHR（基因长度注释）
         * **ii. 并发执行:** 所有“工人” `goroutine` 从管道中抓取任务，并行计算皮尔逊相关系数 `r`。
         * **iii. 结果收集:** “工人们”将计算结果 `[i, j, r]` 放入 `results` 管道，由一个 `goroutine` 异步收集并组装成最终矩阵。
     * **d. 产出:** `main.go` 调用 `writeCorrelationMatrix` 函数，将这个 `16746 x 16746` 的相关性矩阵保存为 `correlation_matrix.csv`。
+ 
+* **阶段3：邻接矩阵（Adjacency Matrix）**
+    * **a. 加载数据:** `main.go` 将"阶段2"产出的 `correlationMatrix` 传递给 `CalculateAdjacencyMatrix` 函数。
+    * **b. 软阈值处理:** 使用 `softPowerBeta = 6.0` 作为幂次参数，对相关性矩阵进行软阈值转换：
+        * **i. 幂次转换:** 对相关性系数取绝对值后进行幂次运算：`adjacency[i][j] = |correlation[i][j]|^beta`。
+        * **ii. 目的:** 强化强相关性，弱化弱相关性，使网络更符合无尺度网络特性。
+    * **c. 产出:** `main.go` 调用 `writeCorrelationMatrix` 函数，将这个 `16746 x 16746` 的邻接矩阵保存为 `adjacency_matrix.csv`。
+
+* **阶段4：拓扑重叠矩阵（TOM）**
+    * **a. 加载数据:** `main.go` 将"阶段3"产出的 `adjacencyMatrix` 传递给 `CalculateTOM` 函数。
+    * **b. 拓扑重叠计算:** 基于邻接矩阵计算拓扑重叠度，衡量基因对之间的共享邻居程度：
+        * **i. 共享连接:** 计算基因 `i` 和基因 `j` 与其他所有基因的共享连接强度总和。
+        * **ii. TOM公式:** `TOM[i][j] = (共享连接 + adjacency[i][j]) / (min(连接度_i, 连接度_j) + 1 - adjacency[i][j])`。
+        * **iii. 目的:** 考虑网络拓扑结构，使相关性度量更加稳健。
+    * **c. 产出:** `main.go` 调用 `writeCorrelationMatrix` 函数，将这个 `16746 x 16746` 的TOM矩阵保存为 `tom_matrix.csv`。
+
+* **阶段5：异质性矩阵（Dissimilarity Matrix）**
+    * **a. 加载数据:** `main.go` 将"阶段4"产出的 `tomMatrix` 传递给 `CalculateDissimilarity` 函数。
+    * **b. 距离转换:** 将拓扑重叠度转换为距离度量：
+        * **i. 转换公式:** `dissimilarity[i][j] = 1 - TOM[i][j]`。
+        * **ii. 目的:** 将相似性度量转换为距离度量，为后续的层次聚类分析做准备。
+    * **c. 产出:** `main.go` 调用 `writeCorrelationMatrix` 函数，将这个 `16746 x 16746` 的异质性矩阵保存为 `dissimilarity_matrix.csv`，作为最终输出供 RShiny 可视化工具进行基因模块聚类分析。
+
 
 thyroid matrix:
 https://drive.google.com/file/d/15FEyBlubkOzGZNARPno2PqadztDV3ztq/view?usp=drive_link
